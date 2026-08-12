@@ -12,6 +12,10 @@ router.get('/',
 */
   postController.getPosts);
 
+router.get('/user/:userId',
+  postController.getPostsByUser
+);
+
 router.get('/:id',
   genericMiddleware.existsModelById(Post),
   /* 
