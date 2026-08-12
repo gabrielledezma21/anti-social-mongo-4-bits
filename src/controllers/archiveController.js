@@ -9,7 +9,7 @@ const fs = require('fs');
 const getArchives = async (req, res, next) => {
   const cached = await getModelsCache(Archive);
   const archives = cached ? JSON.parse(cached) : await Archive.find();
-  await redisClient.set('archives:todos', JSON.stringify(archives), { EX: 300 });
+  await redisClient.set('Archives:todos', JSON.stringify(archives), { EX: 300 });
   res.status(200).json(archives);
 };
 
@@ -37,7 +37,7 @@ const createArchives = async (req, res, next) => {
     { new: true }
   );
 
-  await redisClient.sendCommand(['DEL', 'archives:todos']);
+  await Promise.all([redisClient.del('Archives:todos'), redisClient.del('Posts:todos'), redisClient.del(`Post:${postId}`)]);
   res.status(201).json(nuevasEntradas);
 };
 
@@ -60,7 +60,7 @@ const updateArchive = async (req, res, next) => {
 
   req.archive.imagen = `/uploads/${req.file.filename}`;
   await req.archive.save();
-  await redisClient.del('archives:todos');
+  await Promise.all([redisClient.del('Archives:todos'), redisClient.del(`Archive:${req.archive._id}`), redisClient.del('Posts:todos'), redisClient.del(`Post:${req.archive.postId}`)]);
   res.status(200).json(req.archive);
 };
 
@@ -90,7 +90,9 @@ const deleteById = async (req, res, next) => {
   }
 
   await Promise.all([
-    redisClient.del('archives:todos'),
+    redisClient.del('Archives:todos'),
+    redisClient.del('Posts:todos'),
+    redisClient.del(`Post:${archive.postId}`),
     redisClient.del(`Archive:${archiveId}`)
   ]);
 
