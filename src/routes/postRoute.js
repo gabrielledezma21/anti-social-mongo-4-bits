@@ -2,6 +2,7 @@ const { Router } = require('express')
 const { postController, archiveController } = require("../controllers");
 const { genericMiddleware, postMiddleware } = require("../middlewares");
 const { Post, Archive, User } = require("../models");
+const upload = require('../middlewares/upload');
 const router = Router()
 
 router.get('/',
@@ -103,6 +104,7 @@ router.delete("/:postId/image/:id",
   router.put("/:postId/image/:id",
     genericMiddleware.existsModelById(Archive),
     postMiddleware.validarImagenAsociadaAPost,
+    upload.single('imagenes'),
     /* 
     #swagger.tags = ['Post Image']
     #swagger.path = '/posts/{postId}/archives/{id}'
