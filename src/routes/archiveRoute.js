@@ -12,6 +12,11 @@ router.get('/',
     */
     archiveController.getArchives);
 
+router.get('/:id/content',
+    genericMiddleware.existsModelById(Archive),
+    archiveController.getArchiveContent
+);
+
 router.post('/', 
     /* 
         #swagger.tags = ['Archives']
