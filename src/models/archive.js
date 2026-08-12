@@ -6,24 +6,29 @@ const archiveSchema = new Schema(
     imagen: {
       type: String,
       required: [true, 'La imagen es obligatoria'],
-      unique: true,
     },
     postId: {
       type: Schema.Types.ObjectId,
       ref: 'Post',
-      //required: [true, 'El post asociado es obligatorio'],
-    }
+      required: [true, 'El post asociado es obligatorio'],
+    },
+    data: {
+      type: Buffer,
+      select: false,
+    },
+    mimeType: {
+      type: String,
+      select: false,
+    },
   },
-  {
-    collection: "archives",
-    //timestamps: false, // ver si hace falta
-  }
+  { collection: "archives" }
 );
 
 archiveSchema.set("toJSON", {
   transform: (_, ret) => {
     delete ret.__v;
-    //delete ret._id;
+    delete ret.data;
+    delete ret.mimeType;
   },
 });
 
