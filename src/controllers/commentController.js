@@ -101,7 +101,13 @@ const deleteComment = async (req, res) => {
     
 }
 
-module.exports ={
+const getCommentsByUser = async (req, res) => {
+    const comments = await Comment.find({ userId: req.params.userId });
+    res.status(200).json(comments);
+};
+
+module.exports ={ 
+    getCommentsByUser,
     getComments,
     getCommentById,
     createComment,
