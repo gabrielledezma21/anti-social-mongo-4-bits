@@ -30,16 +30,36 @@ const updateUserById = async (req, res) => {
 
 const deleteById = async (req, res) => {
   const userId = req.params.id;
-  const posts = await Post.find({ userId }).select('_id imagenes');
+  const posts = await Post.find({ userId }).select('_id');
   const postIds = posts.map((post) => post._id);
+  const comments = await Comment.find({
+    $or: [{ userId }, { postId: { $in: postIds } }],
+  }).select('_id');
+  const commentIds = comments.map((comment) => comment._id);
+
   await Promise.all([
-    Comment.deleteMany({ $or: [{ userId }, { postId: { $in: postIds } }] }),
+    Post.updateMany(
+      { _id: { $nin: postIds }, comments: { $in: commentIds } },
+      { $pull: { comments: { $in: commentIds } } },
+    ),
+    User.updateMany(
+      { _id: { $ne: userId }, comments: { $in: commentIds } },
+      { $pull: { comments: { $in: commentIds } } },
+    ),
+    Tag.updateMany(
+      { posts: { $in: postIds } },
+      { $pull: { posts: { $in: postIds } } },
+    ),
+    Comment.deleteMany({ _id: { $in: commentIds } }),
     Archive.deleteMany({ postId: { $in: postIds } }),
-    Tag.updateMany({ posts: { $in: postIds } }, { $pull: { posts: { $in: postIds } } }),
-    Post.deleteMany({ userId }),
+    Post.deleteMany({ _id: { $in: postIds } }),
     User.findByIdAndDelete(userId),
   ]);
-  await Promise.all([deleteModelByIdCache(User, userId), deleteManyModelsCache([User, Post, Comment, Archive, Tag])]);
+
+  await Promise.all([
+    deleteModelByIdCache(User, userId),
+    deleteManyModelsCache([User, Post, Comment, Archive, Tag]),
+  ]);
   res.status(200).json({ message: "Usuario eliminado correctamente" });
 };
 
