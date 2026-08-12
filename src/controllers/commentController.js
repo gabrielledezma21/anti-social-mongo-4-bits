@@ -39,7 +39,7 @@ const createComment = async (req, res) => {
 const updateComment = async (req, res) => {
   const comment = await Comment.findByIdAndUpdate(
     req.params.id,
-    { content: req.body.content },
+    { content: req.body.content, fecha: new Date() },
     { new: true, runValidators: true },
   );
   await deleteManyModelsCache([Comment, Post, User]);
