@@ -1,67 +1,19 @@
 const { redisClient } = require('../config/redisClient');
 
-const getModelByIdCache = async (modelo, id) => {
-    const model = await redisClient.get(`${modelo.modelName}:${id}`);
-    console.log(model ? "Modelo cacheado" : `No hay cache para ${modelo.modelName}`);
-    return model;
+const getModelByIdCache = async (model, id) => redisClient.get(`${model.modelName}:${id}`);
+const getModelsCache = async (model) => redisClient.get(`${model.modelName}s:todos`);
+
+const deleteModelByIdCache = async (model, id) => {
+  if (id) await redisClient.del(`${model.modelName}:${id}`);
 };
 
-const getModelsCache = async (modelo) => {
-    const models = await redisClient.get(`${modelo.modelName}s:todos`);
-    console.log(models ? "Modelo cacheado" : `No hay cache para ${modelo.modelName}s`);
-    return models;
-};
+const deleteModelsCache = async (model) => redisClient.del(`${model.modelName}s:todos`);
+const deleteManyModelsCache = async (models) => Promise.all(models.map(deleteModelsCache));
 
-const deleteModelByIdCache = async (modelo, id) => {
-    console.log(`Eliminando cache de ${modelo.modelName} con id ${id}`);
-    await redisClient.del(`${modelo.modelName}:${id}`);
-};
+const deleteManyDbParents = async (models, queryObject) =>
+  Promise.all(models.map((model) => model.updateMany(queryObject, { $pull: queryObject })));
 
-const deleteModelsCache = async (modelo) => { 
-    await redisClient.del(`${modelo.modelName}s:todos`);
-};
+const deleteManyDbChildren = async (models, queryObject) =>
+  Promise.all(models.map((model) => model.deleteMany(queryObject)));
 
-//Controlador genérico para borrar varios modelos de la cache
-const deleteManyModelsCache = async (modelos) => {
-    /*
-    Controlador genérico para borrar varios modelos de la cache
-        Parametros:
-        modelos: Array de modelos a eliminar de la cache
-    */
-   modelos.forEach(async (modelo) => {
-       console.log(`Eliminando cache de ${modelo.modelName}s`);
-       await deleteModelsCache(modelo);
-   });
-};
-//Controlador genérico para borrar varios de un modelo en la db
-const deleteManyDbParents = async (modelos, queryObject) => {
-    /*
-        Contolador genérico para borrar varios modelos de la base de datos
-        Parametros:
-        modelos: Array de modelos a eliminar de la base de datos
-        queryObject: Objeto de consulta para filtrar los documentos a eliminar
-
-    */
-    modelos.forEach(async (modelo) => {
-        console.log(`Eliminando ${modelo.modelName}s con query:`, queryObject);
-        await modelo.updateMany(
-            queryObject,
-            { $pull: queryObject }
-        )
-    })
-}
-//Controlador genérico para eliminar varios hijos de un modelo en la db
-const deleteManyDbChildren = async (modelos, queryObject) => {
-    /*
-        Contolador genérico para eliminar varios modelos de la base de datos
-        Parametros:
-        modelos: Array de modelos a eliminar de la base de datos
-        queryObject: Objeto de consulta para filtrar los documentos a eliminar
-
-    */
-    modelos.forEach(async (modelo) => {
-        console.log(`Eliminando ${modelo.modelName}s con query:`, queryObject);
-        await modelo.deleteMany(queryObject)
-    })
-}
-module.exports = { getModelByIdCache, getModelsCache, deleteModelsCache, deleteModelByIdCache,  deleteManyModelsCache, deleteManyDbParents, deleteManyDbChildren };
+module.exports = { getModelByIdCache, getModelsCache, deleteModelsCache, deleteModelByIdCache, deleteManyModelsCache, deleteManyDbParents, deleteManyDbChildren };
