@@ -1,15 +1,22 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-let isConnected;
+let connectionPromise;
 
 const conectarDB = async () => {
-    console.log('Conectando a MongoDB...');
-    if (!isConnected) {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('Conectado correctamente a MongoDB');
-        isConnected = true;
-    }
-}
+  const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  if (!mongoUri) {
+    throw new Error('Falta configurar MONGO_URI o MONGODB_URI');
+  }
 
-module.exports = {mongoose, conectarDB};
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(mongoUri).catch((error) => {
+      connectionPromise = undefined;
+      throw error;
+    });
+  }
+
+  await connectionPromise;
+};
+
+module.exports = { mongoose, conectarDB };
