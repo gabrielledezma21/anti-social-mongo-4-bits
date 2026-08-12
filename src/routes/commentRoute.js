@@ -13,6 +13,10 @@ router.get('/',
     commentController.getComments
 );
 
+router.get('/user/:userId',
+    commentController.getCommentsByUser
+);
+
 //Obtener un comentario por id
 router.get('/:id',
     /* 
