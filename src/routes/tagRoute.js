@@ -40,6 +40,7 @@ router.post('/',
 
 router.put("/:id",
   genericMiddleware.existsModelById(Tag),
+  tagMiddleware.notExistsTag,
   genericMiddleware.validarCamposExactos(Tag),
   tagMiddleware.postDoesntExists,
   /* 
