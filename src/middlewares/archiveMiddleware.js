@@ -29,7 +29,7 @@ const archiveById = async (req, res, next) => {
   const cached = await redisClient.get(`Archive:${archiveId}`);
   if (cached) {
     const parsed = JSON.parse(cached);
-    req.archive = new Archive(parsed);
+    req.archive = Archive.hydrate(parsed);
     return next();
   }
 
