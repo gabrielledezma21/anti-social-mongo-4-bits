@@ -39,7 +39,7 @@ router.post('/',
       schema: { $ref: "#/definitions/CommentInput" }
     }
     */
-    genericMiddleware.validarCamposExactos(Comment),
+    commentMiddleware.validateCreate,
     genericMiddleware.existModelRequest(User),
     genericMiddleware.existModelRequest(Post),
     commentController.createComment
@@ -58,6 +58,7 @@ router.put('/:id',
     }
     */
     genericMiddleware.existsModelById(Comment),
+    commentMiddleware.validateUpdate,
     commentController.updateComment
 )
 //Borrar un comentario por id
