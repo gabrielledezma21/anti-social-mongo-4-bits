@@ -1,25 +1,26 @@
 const { createClient } = require('redis');
 
-const redisClient = createClient();
+const redisUrl = process.env.REDIS_URL;
+const client = redisUrl ? createClient({ url: redisUrl }) : null;
+if (client) client.on('error', (error) => console.error('Redis error:', error.message));
 
-redisClient.on('error', (err) => console.error('Redis error: ', err));
+const noop = async () => null;
+const redisClient = client || {
+  get: noop,
+  set: noop,
+  del: noop,
+  sendCommand: noop,
+  flushAll: noop
+};
 
-let isConnected;
-
+let connectionPromise;
 const conectarRedis = async () => {
-    console.log('Conectando a Redis...');
-    if (!isConnected) {
-        await redisClient.connect();
-        console.log('Conectado correctamente a Redis');
-        isConnected = true;
-        //Borrar el contenido de la cache al iniciar el servidor
-        try {
-            await redisClient.flushAll();
-            console.log('Cache de Redis limpiada');
-        } catch (error) {
-            console.error('Error al limpiar la cache de Redis:', error);
-        }
-    }
-}
+  if (!client || client.isOpen) return;
+  connectionPromise ??= client.connect().catch((error) => {
+    connectionPromise = undefined;
+    throw error;
+  });
+  await connectionPromise;
+};
 
 module.exports = { redisClient, conectarRedis };
