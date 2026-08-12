@@ -70,4 +70,9 @@ const actualizarTag = (metodo) => {
     }
 }
 
-module.exports = { getPosts, getPostById, createPost, updatePostById, deletePostById, actualizarTag };
+const getPostsByUser = async (req, res) => {
+    const posts = await Post.find({ userId: req.params.userId }).populate('comments').populate('tags');
+    res.status(200).json(posts);
+};
+
+module.exports = { getPostsByUser, getPosts, getPostById, createPost, updatePostById, deletePostById, actualizarTag };
