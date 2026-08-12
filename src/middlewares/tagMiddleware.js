@@ -5,8 +5,9 @@ const notExistsTag = async (req, _res, next) => {
   try {
     const nameTag = req.body.nameTag?.trim();
     if (!nameTag) return errorPersonalizado('El nombre del tag es obligatorio', 400, next);
-    const existing = await Tag.findOne({ nameTag });
-    if (existing) return errorPersonalizado(`El tag ${nameTag} ya se encuentra registrado`, 409, next);
+    const query = { nameTag };
+    if (req.params.id) query._id = { $ne: req.params.id };
+    if (await Tag.exists(query)) return errorPersonalizado(`El tag ${nameTag} ya se encuentra registrado`, 409, next);
     req.body.nameTag = nameTag;
     return next();
   } catch (error) {
