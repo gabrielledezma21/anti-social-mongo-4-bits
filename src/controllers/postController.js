@@ -44,7 +44,8 @@ const deletePostById = async (req, res) => {
     Comment.deleteMany({ postId: post._id }),
     Archive.deleteMany({ postId: post._id }),
     Tag.updateMany({ posts: post._id }, { $pull: { posts: post._id } }),
-    User.updateOne({ _id: post.userId }, { $pull: { posts: post._id, comments: { $in: commentIds } } }),
+    User.updateOne({ _id: post.userId }, { $pull: { posts: post._id } }),
+    User.updateMany({ comments: { $in: commentIds } }, { $pull: { comments: { $in: commentIds } } }),
   ]);
   await Post.deleteOne({ _id: post._id });
 
